@@ -1,0 +1,188 @@
+
+2007-03-21 01:28:43 GMT	Greg Benison <gbenison@gmail.com>	patch-9
+
+    Summary:
+      fixed order of results
+    Revision:
+      starparse--mainline--0--patch-9
+
+
+    modified files:
+     modules/starparse.scm
+
+
+2007-03-21 01:03:53 GMT	Greg Benison <gbenison@gmail.com>	patch-8
+
+    Summary:
+      increased tolerance for whitespace in semicolon-delimited strings
+    Revision:
+      starparse--mainline--0--patch-8
+
+
+    modified files:
+     lexer.l modules/starparse.scm
+
+
+2007-03-20 16:15:08 GMT	Greg Benison <gbenison@gmail.com>	patch-7
+
+    Summary:
+      added single-quote string support
+    Revision:
+      starparse--mainline--0--patch-7
+
+
+    modified files:
+     example/grok-chemical-shifts.scm lexer.l parser.y
+
+
+2007-02-01 00:59:15 GMT	Greg Benison <gbenison@gmail.com>	patch-6
+
+    Summary:
+      guile adaptor automatically generates numbers for values when possible
+    Revision:
+      starparse--mainline--0--patch-6
+
+    
+    
+
+    new files:
+     example/.arch-ids/grok-chemical-shifts.scm.id
+     example/grok-chemical-shifts.scm
+
+    modified files:
+     guile-binding.c
+
+
+2007-01-31 21:30:46 GMT	Greg Benison <gbenison@gmail.com>	patch-5
+
+    Summary:
+      change guile bindings so that names are symbols, not strings
+    Revision:
+      starparse--mainline--0--patch-5
+
+    
+    
+
+    new files:
+     example/.arch-ids/star-gather.scm.id example/star-gather.scm
+
+    modified files:
+     TODO guile-binding.c
+
+
+2007-01-31 21:23:03 GMT	Greg Benison <gbenison@gmail.com>	patch-4
+
+    Summary:
+      parse routine respects regex filtering request
+    Revision:
+      starparse--mainline--0--patch-4
+
+
+    modified files:
+     Makefile.am TODO configure example/Makefile.am
+     example/star-echo.scm example/starecho.c guile-binding.c
+     lexer.l parser.y
+
+    renamed files:
+     example/.arch-ids/starfilter.c.id
+       ==> example/.arch-ids/starecho.c.id
+     example/starfilter.c
+       ==> example/starecho.c
+
+
+2007-01-31 19:03:01 GMT	Greg Benison <gbenison@gmail.com>	patch-3
+
+    Summary:
+      added guile module
+    Revision:
+      starparse--mainline--0--patch-3
+
+    created a module for the guile bindings and allowed input
+    from named files in addition to stdin.
+    
+
+    new files:
+     modules/.arch-ids/=id modules/.arch-ids/starparse.scm.id
+     modules/starparse.scm
+
+    modified files:
+     Makefile.am TODO example/star-echo.scm example/starfilter.c
+     guile-binding.c parser.y starparse.h
+
+    new directories:
+     modules modules/.arch-ids
+
+
+2007-01-30 22:04:35 GMT	Greg Benison <gbenison@gmail.com>	patch-2
+
+    Summary:
+      added optional guile support
+    Revision:
+      starparse--mainline--0--patch-2
+
+    framework for guile support has been added; starparse_init() function
+    creates a guile binding for star file parsing.
+    
+    
+    
+
+    new files:
+     .arch-ids/NEWS.id .arch-ids/TODO.id
+     .arch-ids/guile-binding.c.id NEWS TODO
+     example/.arch-ids/star-echo.scm.id example/star-echo.scm
+     guile-binding.c
+
+    modified files:
+     Makefile.am configure configure.ac example/starfilter.c
+     lexer.l parser.y
+
+
+2007-01-30 16:36:57 GMT	Greg Benison <gbenison@gmail.com>	patch-1
+
+    Summary:
+      autoconfiscating
+    Revision:
+      starparse--mainline--0--patch-1
+
+    adding autoconf, automake support to build a shared library
+    
+
+    new files:
+     .arch-ids/AUTHORS.id .arch-ids/COPYING.id
+     .arch-ids/ChangeLog.id .arch-ids/INSTALL.id
+     .arch-ids/Makefile.am.id .arch-ids/configure.ac.id
+     .arch-ids/configure.id AUTHORS COPYING ChangeLog INSTALL
+     Makefile.am configure configure.ac
+     example/.arch-ids/Makefile.am.id example/Makefile.am
+
+    removed files:
+     .arch-ids/lexer.c.id lexer.c
+
+    renamed files:
+     .arch-ids/Makefile.id
+       ==> .arch-ids/Makefile.manual.id
+     .arch-ids/filtered.c.id
+       ==> example/.arch-ids/starfilter.c.id
+     Makefile
+       ==> Makefile.manual
+     filtered.c
+       ==> example/starfilter.c
+
+
+2007-01-29 07:03:13 GMT	Greg Benison <gbenison@gmail.com>	base-0
+
+    Summary:
+      initial import
+    Revision:
+      starparse--mainline--0--base-0
+
+    starparse, a parser for .str (star) format files, described by the
+    papers in the 'doc' folder; used for example in the BioMagResBank
+    
+
+    new files:
+     Makefile README doc/hall_1991_326.pdf doc/hall_1994_505.pdf
+     doc/spadaccini_1994_509.pdf example/15076.str filtered.c
+     lexer.c lexer.l parser.y starparse.h
+
+

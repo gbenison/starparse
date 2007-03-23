@@ -1,0 +1,5 @@
+{arch}
+.arch-ids
+help
+.arch*
+example/.arch-ids/starecho.c.id
