@@ -19,9 +19,9 @@
 
 #include <errno.h>
 #include <libguile.h>
+#include "guile-compat.h"
 
 static SCM ship_item_cb;
-
 
 static void
 guile_cb(char* name, char* value)
@@ -47,6 +47,7 @@ guile_cb(char* name, char* value)
   scm_call_2(ship_item_cb, scm_from_locale_symbol(name), value_scm);
 
 }
+
 
 #define FUNC_NAME "star-parse"
 static SCM star_parse_guile (SCM fname_scm, SCM filter_string_scm, SCM ship_item_scm)

@@ -1,0 +1,22 @@
+
+
+
+(use-modules (starparse))
+
+(define (bmrb->shifts fname)
+  (let ((residues (make-hash-table 31))
+	(this-residue #f)
+	(atom-name #f))
+    (define (ensure-hash resid)
+      (let ((result (hash-ref residues resid)))
+	(if (hash-table? result)
+	    result
+	    (hash-set! residues resid (make-hash-table 5)))))
+    (star-parse fname #f
+		(lambda (name value)
+		  (case name
+		    ((Residue_seq_code)(set! this-residue (ensure-hash value)))
+		    ((Atom_name)(set! atom-name (string->symbol value)))
+		    ((Chem_shift_value)(hash-set! this-residue atom-name value)))))
+    residues))
+
