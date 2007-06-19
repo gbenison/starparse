@@ -3,6 +3,6 @@ bin_PROGRAMS = starecho
 
 starecho_SOURCES = starecho.c
 
-INCLUDES = -I@top_srcdir@
-LDADD = ../libstarparse.la
+INCLUDES = -I@top_srcdir@/src
+LDADD = ../src/libstarparse.la
 

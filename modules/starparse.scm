@@ -3,6 +3,7 @@
   #:export (star-parse
 	    read-bmrb-shifts
 	    bmrb->hash
+	    bmrb->alist
 	    make-assignment-set
 	    hash->bmrb)
   #:use-module (ice-9 regex)
@@ -36,6 +37,84 @@
 			     (set! atom-name #f)
 			     (set! atom-value #f)))))
     residues))
+
+;; Names from the BMRB definition of v.3:
+; Atom_chem_shift.ID
+; Atom_chem_shift.Assembly_atom_ID
+; Atom_chem_shift.Entity_assembly_ID
+; Atom_chem_shift.Entity_ID
+; Atom_chem_shift.Comp_index_ID
+; Atom_chem_shift.Seq_ID  	
+; Atom_chem_shift.Comp_ID  	
+; Atom_chem_shift.Atom_ID  	
+; Atom_chem_shift.Atom_type  	
+; Atom_chem_shift.Atom_isotope_number
+; Atom_chem_shift.Val  
+; Atom_chem_shift.Val_err
+; Atom_chem_shift.Assign_fig_of_merit
+; Atom_chem_shift.Ambiguity_code  	
+; Atom_chem_shift.Occupancy  	
+; Atom_chem_shift.Resonance_ID  	
+; Atom_chem_shift.Auth_entity_assembly_ID 
+; Atom_chem_shift.Auth_seq_ID  	
+; Atom_chem_shift.Auth_comp_ID  	
+; Atom_chem_shift.Auth_atom_ID  	
+; Atom_chem_shift.Details  	
+; Atom_chem_shift.Sf_ID  	
+; Atom_chem_shift.Entry_ID
+; Atom_chem_shift.Assigned_chem_shift_list_ID
+
+;; map NMR-Star v.2 names to standard NMR-Star v.3 names
+(define (ensure-star-v3 name)
+  (case name
+    ((Residue_seq_code Atom_chem_shift.Auth_seq_ID)
+     'Atom_chem_shift.Seq_ID)
+    ((Atom_name Atom_chem_shift.Atom_ID Atom_chem_shift.Auth_atom_ID)
+     'Atom_chem_shift.Atom_ID)
+    ((Chem_shift_value Atom_chem_shift.Val)
+     'Atom_chem_shift.Val)
+    (else name)))
+
+(define (entry-cleanup entry)
+  (let ((key (car entry))
+	(value (cdr entry)))
+    (define new-value
+      (if (number? value)
+	  (if (integer? value)
+	      (inexact->exact value)
+	      value)
+	  (string->symbol value)))
+    (cons (ensure-star-v3 key)
+	  new-value)))
+
+; Partition 'my-alist' into sublists such that
+; each sublist has no redundant keys.
+; i.e. group raw bmrb alist into per-assignment groups
+(define (group-assignments my-alist)
+  (let loop ((result (list))
+	     (current (list))
+	     (rest my-alist))
+    (define (entry-present? name)
+      (assoc name current))
+    (if (null? rest)
+	result
+	(if (entry-present? (caar rest))
+	    (loop (cons current result)
+		  (list)
+		  rest)
+	    (loop result
+		  (cons (car rest) current)
+		  (cdr rest))))))
+
+(define (bmrb->alist fname)
+  (define raw-alist
+    (let ((result '()))
+      (star-parse fname #f
+		  (lambda (name value)
+		    (set! result
+			  (cons (cons name value) result))))
+      result))
+  (group-assignments (map entry-cleanup raw-alist)))
 
 (define (even-members lst)
   (if (null? lst)
