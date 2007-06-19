@@ -97,7 +97,9 @@
     (define (entry-present? name)
       (assoc name current))
     (if (null? rest)
-	result
+	(if (null? current)
+	    result
+	    (cons current result))
 	(if (entry-present? (caar rest))
 	    (loop (cons current result)
 		  (list)
