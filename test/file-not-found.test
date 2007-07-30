@@ -1,0 +1,11 @@
+#!/bin/sh
+# what happens when you try to parse a file that isn't there?
+
+exec libtool --mode=execute -dlopen ../libstarparse.la ${GUILE:-guile} -s $0
+
+!#
+
+(use-modules (starparse))
+
+(define input-file-name "does-not-exist-^&#.str")
+(star-parse input-file-name #f (lambda (name value) 'ok))

@@ -1,0 +1,6 @@
+
+(use-modules (starparse))
+
+(define input-file-name
+	(string-append (getenv "srcdir") "/test/malformed.str"))
+(star-parse input-file-name #f (lambda (name value) 'ok))
