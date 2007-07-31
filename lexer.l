@@ -22,6 +22,7 @@
 %x semicolon_string
 
 %option noyywrap
+%option yylineno
 
 %{
 #define YYSTYPE char*
@@ -64,7 +65,7 @@ _{NONWHITESPACE}+             yylval = strdup(yytext + 1); return DATA_NAME;
 [^_\"\'; \t\n]{NONWHITESPACE}*  yylval = strdup(yytext); return DATA_ITEM;
 
 \'      reset_string_buf(); BEGIN(single_quote_string);
-<single_quote_string>\\(.|\n)  push_char(yytext[1]);
+<single_quote_string>\\(.|\n)     push_char(yytext[1]);
 <single_quote_string>[^\\\n\']+  {
           char *yptr = yytext;
           while ( *yptr )
@@ -91,8 +92,7 @@ _{NONWHITESPACE}+             yylval = strdup(yytext + 1); return DATA_NAME;
         }
 
 <double_quote_string>\n        {
-        /* error - unterminated string constant */
-        /* generate error message */
+        /* FIXME error - unterminated string constant */
         }
 
 <double_quote_string>\\[0-7]{1,3} {
@@ -119,7 +119,7 @@ _{NONWHITESPACE}+             yylval = strdup(yytext + 1); return DATA_NAME;
 <double_quote_string>\\b  push_char('\b');
 <double_quote_string>\\f  push_char('\f');
 
-<double_quote_string>\\(.|\n)  push_char(yytext[1]);
+<double_quote_string>\\(.|\n)    push_char(yytext[1]);
 
 <double_quote_string>[^\\\n\"]+        {
         char *yptr = yytext;

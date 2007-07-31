@@ -15,14 +15,7 @@ exec libtool --mode=execute -dlopen ../libstarparse.la ${GUILE:-guile} -s $0
       (format #t "PID --> ~a~%" (getpid))
       (sleep 10)))
 
-(define base-dir (or (getenv "srcdir") "."))
-
 (define input-file-name
-	(string-append base-dir "/malformed.str"))
+	(string-append (getenv "srcdir") "/malformed.str"))
 
-(catch 'parser-error
-       (lambda ()
-	 (star-parse input-file-name #f (lambda (name value) 'ok)))
-       (lambda (key . args)
-	 (format #t "Got error: ~a; ignoring~%" args)
-	 #f))
+(star-parse input-file-name #f (lambda (name value) 'ok))
