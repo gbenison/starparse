@@ -1,6 +1,21 @@
+#!/bin/sh
+# -*-scheme-*-
+#
+# input is a malformed str file
+#
+
+exec libtool --mode=execute -dlopen ../libstarparse.la ${GUILE:-guile} -s $0
+
+!#
 
 (use-modules (starparse))
 
+(if (getenv "SLEEP")
+    (begin
+      (format #t "PID --> ~a~%" (getpid))
+      (sleep 10)))
+
 (define input-file-name
 	(string-append (getenv "srcdir") "/test/malformed.str"))
+
 (star-parse input-file-name #f (lambda (name value) 'ok))

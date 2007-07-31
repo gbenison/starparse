@@ -22,12 +22,15 @@
 
 %{
 #include <stdio.h>
+#include <errno.h>
 #include <assert.h>
 #include <regex.h>
 #include "starparse.h"
 #define YYSTYPE char*
 
   int loop_nest_lvl = 0;
+
+  starparse_error_handler_t starparse_error;
 
   struct _loop_struct {
     char* value;
@@ -50,6 +53,14 @@
       if (ship_item_cb)
 	if ((regexec(&re, name, 0, NULL, 0)) == 0)
           ship_item_cb(name, value);
+    }
+
+
+  static void
+  default_error_handler(char* msg)
+    {
+      fprintf(stderr, msg);
+      exit(1);
     }
 
 
@@ -235,12 +246,24 @@ data_value: DATA_ITEM
 extern FILE* yyin;
 
 void
-starparse(const char* fname, const char* filter, ship_item_cb_t ship_item)
+starparse(const char* fname, const char* filter, ship_item_cb_t ship_item, starparse_error_handler_t error_handler)
 {
+  if (error_handler == NULL)
+    starparse_error = default_error_handler;
+  else
+    starparse_error = error_handler;
   if (strcmp(fname, "-") != 0)
     {
       yyin = fopen(fname, "r");
-      assert(yyin);  /* FIXME could handle errors more gracefully :) */
+      if (!yyin)
+	{
+	  char* error_msg = strerror(errno);
+	  char* fmt = "starparse: %s: %s";
+	  char msg[strlen(error_msg) + strlen(fname) + strlen(fmt)];
+	  sprintf(msg, fmt, fname, error_msg);
+	  starparse_error(msg);
+	}
+      assert(yyin);
     }
   ship_item_cb = ship_item;
 

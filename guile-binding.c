@@ -24,6 +24,12 @@
 static SCM ship_item_cb;
 
 static void
+guile_error_handler(char* msg)
+{
+  scm_throw(scm_from_locale_symbol("parser-error"), scm_from_locale_string(msg));
+}
+
+static void
 guile_cb(char* name, char* value)
 {
   SCM value_scm;
@@ -63,7 +69,7 @@ static SCM star_parse_guile (SCM fname_scm, SCM filter_string_scm, SCM ship_item
   
   ship_item_cb = ship_item_scm;
 
-  starparse(fname, filter_string, guile_cb);
+  starparse(fname, filter_string, guile_cb, guile_error_handler);
   
   if (filter_string)
     free(filter_string);
