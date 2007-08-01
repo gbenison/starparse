@@ -1,5 +1,5 @@
 
-SUBDIRS = example test
+SUBDIRS = . example test
 
 lib_LTLIBRARIES=libstarparse.la
 
