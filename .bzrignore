@@ -3,3 +3,15 @@
 help
 .arch*
 example/.arch-ids/starecho.c.id
+Makefile.in
+example/Makefile.in
+ltmain.sh
+missing
+install-sh
+depcomp
+configure
+config.sub
+config.guess
+compile
+autom4te.cache
+aclocal.m4
