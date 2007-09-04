@@ -248,6 +248,8 @@ starparse(const char* fname, const char* filter, ship_item_cb_t ship_item)
   regcomp(&re, re_string, REG_EXTENDED);
 
   yyparse();
+
+  fclose(yyin);
 }
 
 
