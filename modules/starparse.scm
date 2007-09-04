@@ -1,13 +1,13 @@
 
 (define-module (starparse)
   #:export (star-parse
-	    read-bmrb-shifts
 	    bmrb->hash
+	    bmrb->alist
 	    make-assignment-set
+	    alist:write-bmrb-block
 	    hash->bmrb)
   #:use-module (ice-9 regex)
   #:use-module (ice-9 format))
-		     
 
 (load-extension "libstarparse" "starparse_init")
 
@@ -37,6 +37,86 @@
 			     (set! atom-value #f)))))
     residues))
 
+;; Names from the BMRB definition of v.3:
+; Atom_chem_shift.ID
+; Atom_chem_shift.Assembly_atom_ID
+; Atom_chem_shift.Entity_assembly_ID
+; Atom_chem_shift.Entity_ID
+; Atom_chem_shift.Comp_index_ID
+; Atom_chem_shift.Seq_ID  	
+; Atom_chem_shift.Comp_ID  	
+; Atom_chem_shift.Atom_ID  	
+; Atom_chem_shift.Atom_type  	
+; Atom_chem_shift.Atom_isotope_number
+; Atom_chem_shift.Val  
+; Atom_chem_shift.Val_err
+; Atom_chem_shift.Assign_fig_of_merit
+; Atom_chem_shift.Ambiguity_code  	
+; Atom_chem_shift.Occupancy  	
+; Atom_chem_shift.Resonance_ID  	
+; Atom_chem_shift.Auth_entity_assembly_ID 
+; Atom_chem_shift.Auth_seq_ID  	
+; Atom_chem_shift.Auth_comp_ID  	
+; Atom_chem_shift.Auth_atom_ID  	
+; Atom_chem_shift.Details  	
+; Atom_chem_shift.Sf_ID  	
+; Atom_chem_shift.Entry_ID
+; Atom_chem_shift.Assigned_chem_shift_list_ID
+
+;; map NMR-Star v.2 names to standard NMR-Star v.3 names
+(define (ensure-star-v3 name)
+  (case name
+    ((Residue_seq_code Atom_chem_shift.Auth_seq_ID)
+     'Atom_chem_shift.Seq_ID)
+    ((Atom_name Atom_chem_shift.Atom_ID Atom_chem_shift.Auth_atom_ID)
+     'Atom_chem_shift.Atom_ID)
+    ((Chem_shift_value Atom_chem_shift.Val)
+     'Atom_chem_shift.Val)
+    (else name)))
+
+(define (entry-cleanup entry)
+  (let ((key (car entry))
+	(value (cdr entry)))
+    (define new-value
+      (if (number? value)
+	  (if (integer? value)
+	      (inexact->exact value)
+	      value)
+	  (string->symbol value)))
+    (cons (ensure-star-v3 key)
+	  new-value)))
+
+; Partition 'my-alist' into sublists such that
+; each sublist has no redundant keys.
+; i.e. group raw bmrb alist into per-assignment groups
+(define (group-assignments my-alist)
+  (let loop ((result (list))
+	     (current (list))
+	     (rest my-alist))
+    (define (entry-present? name)
+      (assoc name current))
+    (if (null? rest)
+	(if (null? current)
+	    result
+	    (cons current result))
+	(if (entry-present? (caar rest))
+	    (loop (cons current result)
+		  (list)
+		  rest)
+	    (loop result
+		  (cons (car rest) current)
+		  (cdr rest))))))
+
+(define (bmrb->alist fname)
+  (define raw-alist
+    (let ((result '()))
+      (star-parse fname #f
+		  (lambda (name value)
+		    (set! result
+			  (cons (cons name value) result))))
+      result))
+  (group-assignments (map entry-cleanup raw-alist)))
+
 (define (even-members lst)
   (if (null? lst)
       (list)
@@ -48,33 +128,6 @@
 
 (define (odd-members lst)
   (even-members (cdr lst)))
-
-(define (write-all-bmrb-fields element fields)
-  (if (null? fields)
-      (newline)
-      (let ((op  (car fields))
-	    (rest (cdr fields)))
-	(format #t "~8a " (op element))
-	(write-all-bmrb-fields element rest))))
-
-(define (write-bmrb-loop data . fields)
-  (let ((tags (even-members fields))
-	(ops (odd-members fields)))
-    ;; write header
-    (display "loop_")
-    (newline)
-    (for-each (lambda(f)
-		(display "_")
-		(display f)
-		(newline))
-	      tags)
-    ;; write body
-    (for-each
-     (lambda (elem)
-       (write-all-bmrb-fields elem ops))
-     data)
-    (display "stop_")
-    (newline)))
 
 (define (atom-name->type name)
   (case name
@@ -118,32 +171,55 @@
     (apply append
 	   (map (lambda(resid)(map (lambda(atom)(cons resid atom)) atoms)) residues))))
 
-;; deprecated in favor of bmrb->hash
-(define (read-bmrb-shifts fname)
-  (let ((result (list))
-	(entry (list)))
-    (define (is-id-token? sym)
-      (let ((name (symbol->string sym)))
-	(and (string-match "Atom" name)
-	     (string-match "ID" name))))
-    ;; looking for starting token
-    (define (state-1 name value)
-      (if (is-id-token? name)
-	  (begin (set! entry (assoc-set! entry name value))
-		 (set! current-state state-2))))
-    ;; building an entry
-    (define (state-2 name value)
-      (if (is-id-token? name)
-	  (begin (set! result (cons entry result))
-		 (set! entry (list))
-		 (set! current-state state-1)
-		 (current-state name value))
-	  (set! entry (assoc-set! entry name value))))
-    (define current-state #f)
-    (begin (set! current-state state-1)
-	   (star-parse fname #f (lambda (name value)
-				  (current-state name value))))
-    (reverse result)))
+(define (exact-integer? x)
+  (and (integer? x)
+       (exact? x)))
 
+;
+; Format 'datum' for inclusion in a star file:
+; column width of 8 characters;
+; default entry of '.' if datum is false
+;
+(define (format-star-datum datum)
+  (define format-string
+    (cond ((exact-integer? datum) "~8d ")
+	  ((number? datum) "~8f ")
+	  (else "~8a ")))
+  (if datum
+      (format #f format-string datum)
+      ".        "))
+;
+; Print on the default output stream the elements of
+; the list of alists 'data' in Star format as a loop
+; with tags given by 'fields'
+;
+(define (write-bmrb-loop data fields)
+  ;; write header
+  (display "loop_")
+  (newline)
+  (for-each (lambda(f)
+	      (display "_")
+	      (display f)
+	      (newline))
+	    fields)
+  ;; write body
+  (for-each
+   (lambda (datum)
+     (for-each
+      (lambda (field)
+	(display (format-star-datum (assoc-ref datum field))))
+      fields)
+     (newline))
+   data)
+  (display "stop_")
+  (newline))
 
+;
+; Write a full bmrb data block, using the keys from
+; the first entry in my-alist as the loop elements
+;
+(define (alist:write-bmrb-block name my-alist)
+  (let ((fields (map car (car my-alist))))
+    (format #t "data_~a~%" name)
+    (write-bmrb-loop my-alist fields)))
 
