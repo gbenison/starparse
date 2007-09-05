@@ -21,8 +21,8 @@
 %x single_quote_string
 %x semicolon_string
 
-%option noyywrap
 %option yylineno
+
 
 %{
 #define YYSTYPE char*
@@ -45,6 +45,15 @@ void push_char(char c)
 }
 char* string_buf() {if (_string_buf_ptr) *_string_buf_ptr = '\0'; return _string_buf;}
 char* reset_string_buf() {_string_buf_ptr = _string_buf;}
+
+static int
+yywrap()
+{
+  BEGIN(INITIAL);
+  yylineno=1;
+  return 1;
+}
+
 %}
 
 WHITESPACE           [ \t\n]

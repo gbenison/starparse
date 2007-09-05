@@ -232,7 +232,7 @@ global_block_body: /* empty */
                    | global_block_body data
 
 data:  DATA_NAME data_value {SHIP_ITEM($1, $2);}
-       | error { throw_error("syntax error", yylval); }
+       | error { throw_error("syntax error", current_line()); }
        | data_loop
 
 save_frame: SAVE_HEADING save_frame_body SAVE_FRAME_STOP
