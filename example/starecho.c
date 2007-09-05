@@ -35,5 +35,5 @@ main (int argc, char* argv[])
 
   char* infile = (argc > 1) ? argv[1] : "-";
 
-  starparse(infile, FILTER_STRING, ship_item_echo);
+  starparse(infile, FILTER_STRING, ship_item_echo, NULL);
 }

@@ -1,0 +1,26 @@
+#!/bin/sh
+# -*-scheme-*-
+#
+# what happens when you try to parse a file that isn't there?
+#
+
+exec libtool --mode=execute -dlopen ../src/libstarparse.la ${GUILE:-guile} -s $0
+
+!#
+
+(use-modules (starparse))
+
+(if (getenv "SLEEP")
+    (begin
+      (format #t "PID --> ~a~%" (getpid))
+      (sleep 10)))
+
+(define input-file-name "does-not-exist-^&#.str")
+
+(catch 'parser-error
+  (lambda ()
+    (star-parse input-file-name #f (lambda (name value) 'ok)))
+  (lambda (key . args)
+    (format #t "Got error: ~a; ignoring~%" args)
+    #f))
+

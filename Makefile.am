@@ -1,4 +1,5 @@
-SUBDIRS = src example
+
+SUBDIRS = . src example test
 
 if ENABLE_GUILE
 guiledatadir=$(datadir)/guile/site
