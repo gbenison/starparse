@@ -152,13 +152,7 @@ _{NONWHITESPACE}+             yylval = strdup(yytext + 1); return DATA_NAME;
                                  reset_string_buf();
                                  assert(strlen(yytext) <= 3);
                                }
-<semicolon_string>{NEWLINE};[ \r\n]*{NEWLINE}; {
-                                      /* special case of two semicolon strings immediately adjacent */
-                                      yylval = strdup(string_buf());
-                                      reset_string_buf();
-                                      return TEXT_STRING;
-                                }
-<semicolon_string>{NEWLINE};[ \r\n]*{NEWLINE}   { 
+<semicolon_string>{NEWLINE};   { 
                                  BEGIN(INITIAL);
                                  yylval = strdup(string_buf());
                                  return TEXT_STRING;
