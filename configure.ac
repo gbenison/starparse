@@ -22,6 +22,7 @@ fi
 AM_CONDITIONAL(ENABLE_GUILE, test "x$ENABLE_GUILE" = "xyes")
 
 AC_CONFIG_FILES([Makefile
+                 starparse-env
                  src/Makefile
                  example/Makefile])
 
