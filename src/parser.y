@@ -22,6 +22,7 @@
 
 %{
 #include <stdio.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
@@ -31,7 +32,7 @@
 
   extern int yylineno;
 
-  static char*
+  char*
     current_line()
     {
       #define MSG_MAX_LENGTH 128
@@ -75,7 +76,7 @@
       exit(1);
     }
 
-static void
+void
 throw_error(const char* msg1, const char* msg2)
 {
   char* fmt = "starparse: %s: %s";
@@ -267,11 +268,19 @@ data_value: DATA_ITEM
 %%
 
 extern FILE* yyin;
-
+extern int yy_flex_debug;
 
 void
 starparse(const char* fname, const char* filter, ship_item_cb_t ship_item, starparse_error_handler_t error_handler)
 {
+  if (getenv("DEBUG_LEXER"))
+      yy_flex_debug = 1;
+  else
+      yy_flex_debug = 0;
+  if (getenv("DEBUG_PARSER"))
+      yydebug = 1;
+  else
+      yydebug = 0;
   if (error_handler == NULL)
     starparse_error = default_error_handler;
   else
