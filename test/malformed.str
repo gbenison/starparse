@@ -1,0 +1,28 @@
+# designed to be malformed .str file:
+# the stop_ tag has been swapped with another line within the loop
+#
+data_assignments
+loop_
+_Atom_chem_shift.ID
+_Atom_chem_shift.Auth_seq_ID
+_Atom_chem_shift.Auth_comp_ID
+_Atom_chem_shift.Auth_atom_ID
+_Atom_chem_shift.Atom_type
+_Atom_chem_shift.Val
+_Atom_chem_shift.Val_err
+_Atom_chem_shift.Ambiguity_code
+_Atom_chem_shift.Occupancy
+109      138      .        H        H        8.27     0.02     1        1        
+110      138      .        N        N        111.42   0.05     1        1        
+111      139      .        H        H        8.03     0.02     1        1        
+112      139      .        N        N        109.82   0.05     1        1        
+113      140      .        H        H        8.53     0.02     1        1        
+114      140      .        N        N        108.69   0.05     1        1        
+115      141      .        H        H        8.94     0.02     1        1        
+stop_
+116      141      .        N        N        117.77   0.05     1        1        
+117      142      .        H        H        8.61     0.02     1        1        
+118      142      .        N        N        110.33   0.05     1        1        
+119      143      .        H        H        7.86     0.02     1        1        
+120      143      .        N        N        126.24   0.05     1        1        
+

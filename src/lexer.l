@@ -21,9 +21,13 @@
 %x single_quote_string
 %x semicolon_string
 
-%option noyywrap
+%option yylineno
+%option debug
 
 %{
+
+#include <assert.h>
+
 #define YYSTYPE char*
 #include <stdlib.h>
 #include "parser.h"
@@ -44,14 +48,27 @@ void push_char(char c)
 }
 char* string_buf() {if (_string_buf_ptr) *_string_buf_ptr = '\0'; return _string_buf;}
 char* reset_string_buf() {_string_buf_ptr = _string_buf;}
+
+static int
+yywrap()
+{
+  BEGIN(INITIAL);
+  yylineno=1;
+  return 1;
+}
+
+extern void throw_error(const char*, const char*);
+extern char* current_line(void);
+
 %}
 
-WHITESPACE           [ \t\n]
-NONWHITESPACE        [^ \t\n]
+NEWLINE (\r\n|\r|\n)
+WHITESPACE           [ \t\n\r]
+NONWHITESPACE        [^ \t\n\r]
 
 %%
 
-#.*\n                         /* gobble comments */
+#.*{NEWLINE}                         /* gobble comments */
 
 loop_                         return LOOP_START;
 stop_                         return LOOP_STOP;
@@ -61,22 +78,20 @@ save_{NONWHITESPACE}+         yylval = strdup(yytext + 5); return SAVE_HEADING;
 data_{NONWHITESPACE}+         yylval = strdup(yytext + 5); return DATA_HEADING;
 _{NONWHITESPACE}+             yylval = strdup(yytext + 1); return DATA_NAME;
 
-[^_\"\'; \t\n]{NONWHITESPACE}*  yylval = strdup(yytext); return DATA_ITEM;
+[^_\"\'; \t\n\r]{NONWHITESPACE}*  yylval = strdup(yytext); return DATA_ITEM;
 
-\'      reset_string_buf(); BEGIN(single_quote_string);
-<single_quote_string>\\(.|\n)  push_char(yytext[1]);
-<single_quote_string>[^\\\n\']+  {
-          char *yptr = yytext;
-          while ( *yptr )
-                  push_char(*yptr++);
-        }
-
-<single_quote_string>\'   {
+{WHITESPACE}\'      reset_string_buf(); BEGIN(single_quote_string);
+<single_quote_string>\'{WHITESPACE}   {
         BEGIN(INITIAL);
         push_char('\0');
         yylval = strdup(string_buf());
+	unput(' ');
         return TEXT_STRING;
      }
+<single_quote_string>\\.                 push_char(yytext[1]);
+<single_quote_string>\\{NEWLINE}         push_char('\n');
+<single_quote_string>[^\\\n\r]           push_char(yytext[0]);
+<single_quote_string>.            throw_error("unmatched input", current_line());
 
 \"      reset_string_buf(); BEGIN(double_quote_string);
 
@@ -90,9 +105,8 @@ _{NONWHITESPACE}+             yylval = strdup(yytext + 1); return DATA_NAME;
         return TEXT_STRING;
         }
 
-<double_quote_string>\n        {
-        /* error - unterminated string constant */
-        /* generate error message */
+<double_quote_string>{NEWLINE}        {
+        /* FIXME error - unterminated string constant */
         }
 
 <double_quote_string>\\[0-7]{1,3} {
@@ -119,31 +133,32 @@ _{NONWHITESPACE}+             yylval = strdup(yytext + 1); return DATA_NAME;
 <double_quote_string>\\b  push_char('\b');
 <double_quote_string>\\f  push_char('\f');
 
-<double_quote_string>\\(.|\n)  push_char(yytext[1]);
+<double_quote_string>\\.                push_char(yytext[1]);
+<double_quote_string>\\{NEWLINE}        push_char('\n');
 
-<double_quote_string>[^\\\n\"]+        {
+<double_quote_string>[^\\\n\r\"]+        {
         char *yptr = yytext;
 
         while ( *yptr )
                 push_char(*yptr++);
         }
+<double_quote_string>.            throw_error("unmatched input", current_line());
 
-\n;                            { 
+{NEWLINE};                            { 
                                  BEGIN(semicolon_string);
                                  reset_string_buf();
-                                 int i;
-                                 for (i = 2; i < strlen(yytext); ++i)
-                                    push_char(yytext[i]);
+                                 assert(strlen(yytext) <= 3);
                                }
-<semicolon_string>[^;]         {push_char(yytext[0]);}
-<semicolon_string>\n;[ \n]*\n   { 
+<semicolon_string>{NEWLINE};   { 
                                  BEGIN(INITIAL);
                                  yylval = strdup(string_buf());
                                  return TEXT_STRING;
                                }
+<semicolon_string>{NEWLINE}           {push_char(yytext[0]);}
+<semicolon_string>.            {push_char(yytext[0]);}
 
 
 {WHITESPACE} /* gobble */
-.            printf ("@"); /* gobble unmatched chars */ 
+.            throw_error("unmatched input", current_line());
 
 

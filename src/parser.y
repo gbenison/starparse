@@ -22,12 +22,28 @@
 
 %{
 #include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
 #include <assert.h>
 #include <regex.h>
 #include "starparse.h"
 #define YYSTYPE char*
 
+  extern int yylineno;
+
+  char*
+    current_line()
+    {
+      #define MSG_MAX_LENGTH 128
+      static char msg[MSG_MAX_LENGTH];
+      snprintf(msg, MSG_MAX_LENGTH, "line %d", yylineno);
+      return msg;
+    }
+
   int loop_nest_lvl = 0;
+
+  starparse_error_handler_t starparse_error;
 
   struct _loop_struct {
     char* value;
@@ -52,6 +68,22 @@
           ship_item_cb(name, value);
     }
 
+
+  static void
+  default_error_handler(char* msg)
+    {
+      fprintf(stderr, msg);
+      exit(1);
+    }
+
+void
+throw_error(const char* msg1, const char* msg2)
+{
+  char* fmt = "starparse: %s: %s";
+  char msg[strlen(fmt) + strlen(msg1) + strlen(msg2)];
+  sprintf(msg, fmt, msg1, msg2);
+  starparse_error(msg);
+}
 
 #define SHIP_ITEM(_a_, _b_) {_ship_item((_a_), (_b_));}
 
@@ -150,6 +182,9 @@
 
   char* loop_grab_tag()
     {
+      if (loop_cur == NULL)
+	throw_error("misformatted loop", current_line());
+      assert(loop_cur != NULL);
       char* result = loop_cur->value;
       loop_cur = loop_cur->next;
       return result;
@@ -198,7 +233,7 @@ global_block_body: /* empty */
                    | global_block_body data
 
 data:  DATA_NAME data_value {SHIP_ITEM($1, $2);}
-       | error { fprintf(stderr, "starparse: syntax error: \"%s\"\n", yylval); }
+       | error { throw_error("syntax error", current_line()); }
        | data_loop
 
 save_frame: SAVE_HEADING save_frame_body SAVE_FRAME_STOP
@@ -233,18 +268,33 @@ data_value: DATA_ITEM
 %%
 
 extern FILE* yyin;
+extern int yy_flex_debug;
 
 void
-starparse(const char* fname, const char* filter, ship_item_cb_t ship_item)
+starparse(const char* fname, const char* filter, ship_item_cb_t ship_item, starparse_error_handler_t error_handler)
 {
+  if (getenv("DEBUG_LEXER"))
+      yy_flex_debug = 1;
+  else
+      yy_flex_debug = 0;
+  if (getenv("DEBUG_PARSER"))
+      yydebug = 1;
+  else
+      yydebug = 0;
+  if (error_handler == NULL)
+    starparse_error = default_error_handler;
+  else
+    starparse_error = error_handler;
   if (strcmp(fname, "-") != 0)
     {
       yyin = fopen(fname, "r");
-      assert(yyin);  /* FIXME could handle errors more gracefully :) */
+      if (!yyin)
+	throw_error(fname, strerror(errno));
+      assert(yyin);
     }
   ship_item_cb = ship_item;
 
-  char* re_string = filter ? filter : ".*";
+  const char* re_string = filter ? filter : ".*";
   regcomp(&re, re_string, REG_EXTENDED);
 
   yyparse();

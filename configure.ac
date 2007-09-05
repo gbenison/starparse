@@ -9,20 +9,23 @@ AC_PROG_YACC
 
 AM_INIT_AUTOMAKE
 
-ENABLE_GUILE=no  # default value
 AC_ARG_ENABLE(guile,
 	      AS_HELP_STRING([--enable-guile],
-                             [build bindings for guile scheme interpreter (default no)]),
-              ENABLE_GUILE=yes, ENABLE_GUILE=no)
-if test "x$ENABLE_GUILE" = "xyes";
+                             [build bindings for guile scheme interpreter]),
+              USE_GUILE=$enable_guile,
+              USE_GUILE=yes)  # default value
+
+if test "x$USE_GUILE" = "xyes";
 then
   GUILE_FLAGS
 fi
-# AC_SUBST(ENABLE_GUILE)
-AM_CONDITIONAL(ENABLE_GUILE, test "x$ENABLE_GUILE" = "xyes")
+
+AM_CONDITIONAL(ENABLE_GUILE, test "x$USE_GUILE" = "xyes")
 
 AC_CONFIG_FILES([Makefile
+                 starparse-env
                  src/Makefile
+                 test/Makefile
                  example/Makefile])
 
 AC_OUTPUT

@@ -1,0 +1,27 @@
+#!/bin/sh
+# -*-scheme-*-
+#
+#
+
+exec libtool --mode=execute -dlopen ../src/libstarparse.la ${GUILE:-guile} -s $0
+
+!#
+
+(use-modules (starparse))
+
+(if (getenv "SLEEP")
+    (begin
+      (format #t "PID --> ~a~%" (getpid))
+      (sleep 10)))
+
+(define base-dir (or (getenv "srcdir") "."))
+
+(define input-file-name
+	(string-append base-dir "/single-quote.str"))
+
+(star-parse input-file-name #f
+	    (lambda (name value)
+	      (if (equal? name 'final_key)
+		  (if (not (equal? value "final_value"))
+		      (error "did not parse correctly")))))
+
