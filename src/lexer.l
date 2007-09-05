@@ -135,12 +135,13 @@ _{NONWHITESPACE}+             yylval = strdup(yytext + 1); return DATA_NAME;
                                  for (i = 2; i < strlen(yytext); ++i)
                                     push_char(yytext[i]);
                                }
-<semicolon_string>[^;]         {push_char(yytext[0]);}
 <semicolon_string>\n;[ \n]*\n   { 
                                  BEGIN(INITIAL);
                                  yylval = strdup(string_buf());
                                  return TEXT_STRING;
                                }
+<semicolon_string>\n           {push_char(yytext[0]);}
+<semicolon_string>.            {push_char(yytext[0]);}
 
 
 {WHITESPACE} /* gobble */
