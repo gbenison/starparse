@@ -3,7 +3,8 @@ TESTS = \
     file-not-found.test \
     file-not-found-xfail.test \
     malformed.test \
-    malformed-xfail.test
+    malformed-xfail.test \
+    single-quote.test
 
 XFAIL_TESTS = \
     file-not-found-xfail.test \
