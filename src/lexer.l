@@ -80,20 +80,17 @@ _{NONWHITESPACE}+             yylval = strdup(yytext + 1); return DATA_NAME;
 
 [^_\"\'; \t\n\r]{NONWHITESPACE}*  yylval = strdup(yytext); return DATA_ITEM;
 
-\'      reset_string_buf(); BEGIN(single_quote_string);
-<single_quote_string>\\(.|{NEWLINE})     push_char(yytext[1]);
-<single_quote_string>[^\\\n\r\']+  {
-          char *yptr = yytext;
-          while ( *yptr )
-                  push_char(*yptr++);
-        }
-
-<single_quote_string>\'   {
+{WHITESPACE}\'      reset_string_buf(); BEGIN(single_quote_string);
+<single_quote_string>\'{WHITESPACE}   {
         BEGIN(INITIAL);
         push_char('\0');
         yylval = strdup(string_buf());
+	unput(' ');
         return TEXT_STRING;
      }
+<single_quote_string>\\.                 push_char(yytext[1]);
+<single_quote_string>\\{NEWLINE}         push_char('\n');
+<single_quote_string>[^\\\n\r]           push_char(yytext[0]);
 <single_quote_string>.            throw_error("unmatched input", current_line());
 
 \"      reset_string_buf(); BEGIN(double_quote_string);
