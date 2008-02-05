@@ -9,3 +9,5 @@ TESTS = \
 XFAIL_TESTS = \
     file-not-found-xfail.test \
     malformed-xfail.test
+
+EXTRA_DIST = $(TESTS) $(XFAIL_TESTS) single-quote.str malformed.str
