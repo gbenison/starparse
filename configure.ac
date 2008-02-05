@@ -1,5 +1,6 @@
 
 AC_INIT(starparse, 0.9, [gbenison@gmail.com])
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([src/parser.y])
 
 AC_PROG_CC
