@@ -1,4 +1,6 @@
 
+TESTS_ENVIRONMENT = GUILE_LOAD_PATH=$(top_srcdir)/modules:$GUILE_LOAD_PATH
+
 TESTS = \
     file-not-found.test \
     file-not-found-xfail.test \
