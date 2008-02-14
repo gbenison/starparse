@@ -23,6 +23,7 @@
 
 %option yylineno
 %option debug
+%option noyywrap
 
 %{
 
@@ -48,14 +49,6 @@ void push_char(char c)
 }
 char* string_buf() {if (_string_buf_ptr) *_string_buf_ptr = '\0'; return _string_buf;}
 char* reset_string_buf() {_string_buf_ptr = _string_buf;}
-
-static int
-yywrap()
-{
-  BEGIN(INITIAL);
-  yylineno=1;
-  return 1;
-}
 
 extern void throw_error(const char*, const char*);
 extern char* current_line(void);
