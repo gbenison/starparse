@@ -197,13 +197,14 @@ throw_error(const char* msg1, const char* msg2)
 
   void yyerror (char const *s)
     {
-      fprintf (stderr, "%s\n", s);
+      throw_error(s, current_line());
     }
 
 %}
 
 %debug
 %defines
+%error-verbose
 
 %token SAVE_HEADING
 %token SAVE_FRAME_STOP
