@@ -4,9 +4,11 @@
 	    bmrb->hash
 	    bmrb->alist
 	    make-assignment-set
+	    write-bmrb-loop
 	    alist:write-bmrb-block
 	    hash->bmrb)
   #:use-module (ice-9 regex)
+  #:use-module (srfi srfi-1)
   #:use-module (ice-9 format))
 
 (load-extension "libstarparse" "starparse_init")
@@ -141,6 +143,29 @@
     ((H)     0.02)
     (else    0.05)))
 
+(define (all-=? elts)
+  (fold (lambda (elt prev)(= elt (car elts))) #t elts))
+
+;
+; data1, data2, ... lists of field name followed by values
+; for that field; all data(n) must be of equal length
+;
+(define (write-bmrb-loop . data)
+  (if (not (all-=? (map length data)))
+      (error "write-bmrb-loop: inconsistent lengths"))
+  (display "loop_\n")
+  (for-each (lambda(f)(format #t "_~a~%" f)) (map car data))
+  (let loop ((data (map cdr data)))
+    (if (>= (length (car data)) 1)
+	(begin
+	  (display "   ")
+	  (for-each
+	   (lambda (field)(format #t "~8a " field))
+	   (map car data))
+	  (newline)
+	  (loop (map cdr data)))))
+  (display "stop_\n"))
+
 ;; assignment-set is a list of (residue . atom) pairs
 (define (hash->bmrb hash assignment-set)
   (define (unknown x) ".")
@@ -151,7 +176,7 @@
 	(format "~,2f" x)
 	"."))
   (display "data_assignments\n")
-  (write-bmrb-loop
+  (write-bmrb-loop%depr
    (filter (lambda (x)(false-if-exception (asg->chemical-shift x))) assignment-set)
    'Atom_chem_shift.ID               (let ((n 0))(lambda (x)(set! n (+ 1 n)) n))
    'Atom_chem_shift.Auth_seq_ID      car
@@ -193,7 +218,7 @@
 ; the list of alists 'data' in Star format as a loop
 ; with tags given by 'fields'
 ;
-(define (write-bmrb-loop data fields)
+(define (write-bmrb-loop%depr data fields)
   ;; write header
   (display "loop_")
   (newline)
@@ -221,5 +246,5 @@
 (define (alist:write-bmrb-block name my-alist)
   (let ((fields (map car (car my-alist))))
     (format #t "data_~a~%" name)
-    (write-bmrb-loop my-alist fields)))
+    (write-bmrb-loop%depr my-alist fields)))
 
