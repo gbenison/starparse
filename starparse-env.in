@@ -9,7 +9,7 @@ prefix=@prefix@;
 datadir=${prefix}/share;
 libdir=${prefix}/lib;
 
-export GUILE_LOAD_PATH=${datadir}/site:$GUILE_LOAD_PATH;
+export GUILE_LOAD_PATH=${datadir}/guile/site:$GUILE_LOAD_PATH;
 export LD_LIBRARY_PATH=${libdir}:$LD_LIBRARY_PATH;
 
 exec $@;
