@@ -74,6 +74,8 @@ static SCM star_parse_guile (SCM fname_scm, SCM filter_string_scm, SCM ship_item
   if (filter_string)
     free(filter_string);
 
+  return SCM_BOOL_F;
+
 }
 #undef FUNC_NAME
 
