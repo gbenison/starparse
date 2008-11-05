@@ -24,7 +24,8 @@
 	(begin
 	  (display "   ")
 	  (for-each
-	   (lambda (field)(format #t "~8a " field))
+	   (lambda (field)
+	     (format #t "~8a " (if field field ".")))
 	   (map car data))
 	  (newline)
 	  (loop (map cdr data)))))
