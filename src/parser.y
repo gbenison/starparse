@@ -270,6 +270,7 @@ data_value: DATA_ITEM
 
 extern FILE* yyin;
 extern int yy_flex_debug;
+void yy_start_scanning_file(FILE *f);
 
 void
 starparse(const char* fname, const char* filter, ship_item_cb_t ship_item, starparse_error_handler_t error_handler)
@@ -286,13 +287,17 @@ starparse(const char* fname, const char* filter, ship_item_cb_t ship_item, starp
     starparse_error = default_error_handler;
   else
     starparse_error = error_handler;
+
+  FILE *input_file = stdin;
+
   if (strcmp(fname, "-") != 0)
     {
-      yyin = fopen(fname, "r");
-      if (!yyin)
+      input_file = fopen(fname, "r");      
+      if (!input_file)
 	throw_error(fname, strerror(errno));
-      assert(yyin);
+      assert(input_file);
     }
+  yy_start_scanning_file(input_file);
   ship_item_cb = ship_item;
 
   const char* re_string = filter ? filter : ".*";
@@ -300,7 +305,8 @@ starparse(const char* fname, const char* filter, ship_item_cb_t ship_item, starp
 
   yyparse();
 
-  fclose(yyin);
+  if (yyin != stdin)
+    fclose(yyin);
 }
 
 

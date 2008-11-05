@@ -35,7 +35,17 @@
 char* _string_buf = NULL;
 char* _string_buf_ptr = NULL;
 int string_max = 0;
-void push_char(char c)
+
+void
+yy_start_scanning_file(FILE *f)
+{
+  static YY_BUFFER_STATE state;
+  state = yy_create_buffer(f, YY_BUF_SIZE);
+  yy_switch_to_buffer(state);
+}
+
+void
+push_char(char c)
 {
    int offset = _string_buf_ptr - _string_buf;
    if (offset >= string_max)
