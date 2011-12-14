@@ -1,4 +1,5 @@
+14dec11	Some scripts in 'examples' directory are out-of-date,
+	specifically compare-shifts-single.scm
 
-- have parser automatically generate numbers, not strings
 
 
